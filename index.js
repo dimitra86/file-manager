@@ -116,6 +116,27 @@ async function addFile(arg) {
   }
 }
 
+async function makeDir(arg) {
+  if (!arg) { invalidInput(); return; }
+  const target = path.join(cwd, arg);
+  try {
+    await fsPromises.mkdir(target, { recursive: false });
+  } catch (e) {
+    operationFailed();
+  }
+}
+
+async function renameFile(oldP, newName) {
+  if (!oldP || !newName) { invalidInput(); return; }
+  const src = safeResolve(oldP);
+  const dest = path.join(path.dirname(src), newName);
+  try {
+    await fsPromises.rename(src, dest);
+  } catch (e) {
+    operationFailed();
+  }
+}
+
 
 // --- Command dispatcher ---
 async function handleLine(line) {
