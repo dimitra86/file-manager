@@ -41,6 +41,72 @@ function operationFailed() {
 }
 
 
+
+// --- Command dispatcher ---
+async function handleLine(line) {
+  const trimmed = (line || '').trim();
+  if (!trimmed) return;
+  if (trimmed === '.exit' || trimmed === 'exit') {
+    exitAndCleanup();
+    return;
+  }
+  const parts = trimmed.split(' ').filter(Boolean);
+  const cmd = parts[0];
+  try {
+    switch(cmd) {
+      case 'up':
+        await goUp();
+        break;
+      case 'cd':
+        await changeDir(parts.slice(1).join(' '));
+        break;
+      case 'ls':
+        await listDir();
+        break;
+      case 'cat':
+        await catFile(parts.slice(1).join(' '));
+        break;
+      case 'add':
+        await addFile(parts.slice(1).join(' '));
+        break;
+      case 'mkdir':
+        await makeDir(parts.slice(1).join(' '));
+        break;
+      case 'rn':
+        await renameFile(parts[1], parts.slice(2).join(' '));
+        break;
+      case 'cp':
+        await copyFile(parts[1], parts.slice(2).join(' '));
+        break;
+      case 'mv':
+        await moveFile(parts[1], parts.slice(2).join(' '));
+        break;
+      case 'rm':
+        await removeFile(parts.slice(1).join(' '));
+        break;
+      case 'os':
+        osInfo(parts[1]);
+        break;
+      case 'hash':
+        await hashFile(parts.slice(1).join(' '));
+        break;
+      case 'compress':
+        await compressFile(parts[1], parts.slice(2).join(' '));
+        break;
+      case 'decompress':
+        await decompressFile(parts[1], parts.slice(2).join(' '));
+        break;
+      default:
+        invalidInput();
+    }
+  } catch (e) {
+    operationFailed();
+  } finally {
+    printCwd();
+  }
+}
+
+
 // --- Exit handling ---
 function exitAndCleanup() {
   console.log(`Thank you for using File Manager, ${usernameForMessages}, goodbye!`);
