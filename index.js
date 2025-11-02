@@ -160,6 +160,37 @@ async function copyFile(srcArg, destDirArg) {
   }
 }
 
+async function moveFile(srcArg, destDirArg) {
+  if (!srcArg || !destDirArg) { invalidInput(); return; }
+  const src = safeResolve(srcArg);
+  const destDir = safeResolve(destDirArg);
+  try {
+    const st = await fsPromises.stat(src);
+    if (!st.isFile()) { invalidInput(); return; }
+    const dstStat = await fsPromises.stat(destDir).catch(()=>null);
+    if (!dstStat || !dstStat.isDirectory()) { invalidInput(); return; }
+    const destPath = path.join(destDir, path.basename(src));
+    // try rename first
+    try {
+      await fsPromises.rename(src, destPath);
+      return;
+    } catch (_) {
+      // fallback to copy+delete using streams
+    }
+    await new Promise((resolve, reject) => {
+      const rs = fs.createReadStream(src);
+      const ws = fs.createWriteStream(destPath);
+      rs.on('error', err => { ws.destroy(); reject(err); });
+      ws.on('error', reject);
+      ws.on('finish', resolve);
+      rs.pipe(ws);
+    });
+    await fsPromises.unlink(src);
+  } catch (e) {
+    operationFailed();
+  }
+}
+
 
 // --- Command dispatcher ---
 async function handleLine(line) {
