@@ -237,6 +237,24 @@ function osInfo(option) {
   }
 }
 
+async function hashFile(arg) {
+  if (!arg) { invalidInput(); return; }
+  const target = safeResolve(arg);
+  try {
+    const st = await fsPromises.stat(target);
+    if (!st.isFile()) { invalidInput(); return; }
+    const hash = crypto.createHash('sha256');
+    await new Promise((resolve, reject) => {
+      const rs = fs.createReadStream(target);
+      rs.on('data', chunk => hash.update(chunk));
+      rs.on('error', reject);
+      rs.on('end', resolve);
+    });
+    console.log(hash.digest('hex'));
+  } catch (e) {
+    operationFailed();
+  }
+}
 
 
 // --- Command dispatcher ---
