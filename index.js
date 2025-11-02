@@ -191,6 +191,19 @@ async function moveFile(srcArg, destDirArg) {
   }
 }
 
+async function removeFile(arg) {
+  if (!arg) { invalidInput(); return; }
+  const target = safeResolve(arg);
+  try {
+    const st = await fsPromises.stat(target);
+    if (!st.isFile()) { invalidInput(); return; }
+    await fsPromises.unlink(target);
+  } catch (e) {
+    operationFailed();
+  }
+}
+
+
 
 // --- Command dispatcher ---
 async function handleLine(line) {
