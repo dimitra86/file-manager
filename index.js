@@ -87,6 +87,22 @@ async function changeDir(arg) {
   }
 }
 
+async function catFile(arg) {
+  if (!arg) { invalidInput(); return; }
+  const target = safeResolve(arg);
+  try {
+    const st = await fsPromises.stat(target);
+    if (!st.isFile()) { invalidInput(); return; }
+    const rs = fs.createReadStream(target, { encoding: 'utf8' });
+    rs.on('error', () => { operationFailed(); rs.destroy(); });
+    rs.pipe(process.stdout, { end: false });
+    await new Promise(resolve => rs.on('end', resolve));
+    console.log(''); // newline after content
+  } catch (e) {
+    operationFailed();
+  }
+}
+
 
 // --- Command dispatcher ---
 async function handleLine(line) {
