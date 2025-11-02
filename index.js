@@ -72,6 +72,22 @@ async function goUp() {
   cwd = parent;
 }
 
+async function changeDir(arg) {
+  if (!arg) { invalidInput(); return; }
+  const dest = safeResolve(arg);
+  try {
+    const st = await fsPromises.stat(dest);
+    if (!st.isDirectory()) { invalidInput(); return; }
+    // Ensure not above root
+    const rootOfCwd = path.parse(cwd).root;
+    if (!dest.startsWith(rootOfCwd)) { /* don't allow */ return; }
+    cwd = dest;
+  } catch (e) {
+    operationFailed();
+  }
+}
+
+
 // --- Command dispatcher ---
 async function handleLine(line) {
   const trimmed = (line || '').trim();
