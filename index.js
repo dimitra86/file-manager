@@ -280,6 +280,31 @@ async function compressFile(srcArg, destArg) {
   }
 }
 
+async function decompressFile(srcArg, destArg) {
+  if (!srcArg || !destArg) { invalidInput(); return; }
+  const src = safeResolve(srcArg);
+  const destPath = safeResolve(destArg);
+  try {
+    const st = await fsPromises.stat(src);
+    if (!st.isFile()) { invalidInput(); return; }
+    const destDir = path.dirname(destPath);
+    const destStat = await fsPromises.stat(destDir).catch(()=>null);
+    if (!destStat || !destStat.isDirectory()) { invalidInput(); return; }
+    await new Promise((resolve, reject) => {
+      const rs = fs.createReadStream(src);
+      const brot = zlib.createBrotliDecompress();
+      const ws = fs.createWriteStream(destPath);
+      rs.on('error', err => { brot.destroy(); ws.destroy(); reject(err); });
+      ws.on('error', reject);
+      ws.on('finish', resolve);
+      rs.pipe(brot).pipe(ws);
+    });
+  } catch (e) {
+    operationFailed();
+  }
+}
+
+
 
 // --- Command dispatcher ---
 async function handleLine(line) {
