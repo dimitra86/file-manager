@@ -137,6 +137,29 @@ async function renameFile(oldP, newName) {
   }
 }
 
+async function copyFile(srcArg, destDirArg) {
+  if (!srcArg || !destDirArg) { invalidInput(); return; }
+  const src = safeResolve(srcArg);
+  const destDir = safeResolve(destDirArg);
+  try {
+    const st = await fsPromises.stat(src);
+    if (!st.isFile()) { invalidInput(); return; }
+    const dstStat = await fsPromises.stat(destDir).catch(()=>null);
+    if (!dstStat || !dstStat.isDirectory()) { invalidInput(); return; }
+    const destPath = path.join(destDir, path.basename(src));
+    await new Promise((resolve, reject) => {
+      const rs = fs.createReadStream(src);
+      const ws = fs.createWriteStream(destPath);
+      rs.on('error', err => { ws.destroy(); reject(err); });
+      ws.on('error', reject);
+      ws.on('finish', resolve);
+      rs.pipe(ws);
+    });
+  } catch (e) {
+    operationFailed();
+  }
+}
+
 
 // --- Command dispatcher ---
 async function handleLine(line) {
