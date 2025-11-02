@@ -40,6 +40,28 @@ function operationFailed() {
   console.log('Operation failed');
 }
 
+// safe join: resolves but prevents going above root of current drive
+function safeResolve(target) {
+  const resolved = path.isAbsolute(target) ? path.normalize(target) : path.normalize(path.join(cwd, target));
+  // Prevent going above root (root of the drive where cwd is)
+  const rootOfCwd = path.parse(cwd).root;
+  if (!resolved.startsWith(rootOfCwd)) return rootOfCwd;
+  return resolved;
+}
+
+async function listDir() {
+  try {
+    const items = await fsPromises.readdir(cwd, { withFileTypes: true });
+    const dirs = items.filter(i => i.isDirectory()).map(d => d.name).sort((a,b)=>a.localeCompare(b));
+    const files = items.filter(i => i.isFile()).map(f => f.name).sort((a,b)=>a.localeCompare(b));
+    // Print folders first then files with type label
+    for (const d of dirs) console.log(`${d} <DIR>`);
+    for (const f of files) console.log(`${f} <FILE>`);
+  } catch (e) {
+    operationFailed();
+  }
+}
+
 
 
 // --- Command dispatcher ---
