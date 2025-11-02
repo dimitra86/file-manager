@@ -62,7 +62,15 @@ async function listDir() {
   }
 }
 
-
+async function goUp() {
+  const parent = path.dirname(cwd);
+  const rootOfCwd = path.parse(cwd).root;
+  if (cwd === rootOfCwd) {
+    // do not change
+    return;
+  }
+  cwd = parent;
+}
 
 // --- Command dispatcher ---
 async function handleLine(line) {
