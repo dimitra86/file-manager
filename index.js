@@ -203,6 +203,40 @@ async function removeFile(arg) {
   }
 }
 
+function osInfo(option) {
+  try {
+    switch(option) {
+      case '--EOL':
+        // Show visible representation of EOL
+        const eol = os.EOL === '\n' ? '\\n' : '\\r\\n';
+        console.log(eol);
+        break;
+      case '--cpus':
+        const cpus = os.cpus();
+        console.log(`Total CPUs: ${cpus.length}`);
+        cpus.forEach((c, i) => {
+          // convert speed from MHz to GHz with 2 decimals
+          const ghz = (c.speed / 1000).toFixed(2);
+          console.log(`CPU ${i + 1}: ${c.model.trim()} - ${ghz}GHz`);
+        });
+        break;
+      case '--homedir':
+        console.log(os.homedir());
+        break;
+      case '--username':
+        console.log(os.userInfo().username);
+        break;
+      case '--architecture':
+        console.log(process.arch);
+        break;
+      default:
+        invalidInput();
+    }
+  } catch (e) {
+    operationFailed();
+  }
+}
+
 
 
 // --- Command dispatcher ---
