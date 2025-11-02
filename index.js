@@ -103,6 +103,19 @@ async function catFile(arg) {
   }
 }
 
+async function addFile(arg) {
+  if (!arg) { invalidInput(); return; }
+  const target = path.join(cwd, arg);
+  try {
+    await fsPromises.open(target, 'wx').then(h=>h.close()).catch(err=>{
+      if (err.code === 'EEXIST') throw err;
+      throw err;
+    });
+  } catch (e) {
+    operationFailed();
+  }
+}
+
 
 // --- Command dispatcher ---
 async function handleLine(line) {
